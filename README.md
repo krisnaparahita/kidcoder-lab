@@ -65,7 +65,7 @@ npm run verify       # everything CI runs: syntax, ES5 lint, unit, e2e
 | Check (GitHub Actions) | What it verifies |
 | --- | --- |
 | `lint` | syntax, app code is plain ES5, configs are valid JSON, no third-party URLs |
-| `unit (node 18/20/22)` | smoke tests on three Node versions |
+| `unit (node 22/24)` | smoke tests on both supported Node LTS lines |
 | `e2e (headless chrome)` | full browser run under the production CSP |
 | `commit authors` | every PR commit is authored by `krisnaparahita`, with no co-author trailers |
 | `Vercel` | the preview deployment builds; the preview URL is posted on the PR |
