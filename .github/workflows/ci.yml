@@ -1,0 +1,94 @@
+name: CI
+
+# Every pull request into main must pass these jobs before it can be merged.
+# Merging stays manual. Deployments come from Vercel's Git integration:
+# every PR gets a preview URL, and merging into main deploys production.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Syntax check
+        run: npm run check
+      - name: App code is plain ES5
+        run: npm run lint:es5
+      - name: Config files are valid JSON
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))"
+      - name: No third-party URLs in app code
+        run: |
+          if grep -rnE "https?://" js css index.html | grep -vE "^\S+:\s*(//|\*|/\*)|http://www.w3.org/2000/svg"; then
+            echo "::error::App code must not load anything from the network (see CONTRIBUTING.md)"; exit 1
+          fi
+
+  unit:
+    name: unit (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+
+  e2e:
+    name: e2e (headless chrome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: Browser test with production headers and CSP
+        run: npm run test:e2e
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+
+  commits:
+    name: commit authors
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Only krisnaparahita in the history, no co-author trailers
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          bad=0
+          for c in $(git rev-list "$BASE..$HEAD"); do
+            author="$(git log -1 --format='%an <%ae>' "$c")"
+            if [ "$author" != "krisnaparahita <krisnaparahita@users.noreply.github.com>" ]; then
+              echo "::error::$c has author $author"; bad=1
+            fi
+            if git log -1 --format='%B' "$c" | grep -qiE '^co-authored-by:'; then
+              echo "::error::$c has a Co-authored-by trailer"; bad=1
+            fi
+          done
+          exit $bad
