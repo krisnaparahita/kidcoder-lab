@@ -47,14 +47,30 @@ There's nothing to install. You can also just open `index.html` in a browser, or
 
 ## Tests
 
-Requires Node.js 18 or newer. There are no dependencies.
+Requires Node.js 18 or newer for the unit tests, and Node 22 plus Chrome for the browser test. There are no dependencies to install.
 
 ```bash
-npm test             # headless smoke tests (node:test)
-npm run check        # syntax-check every script
+npm test             # unit/smoke tests (node:test)
+npm run test:e2e     # headless Chrome end-to-end test, run with the production headers and CSP
+npm run verify       # everything CI runs: syntax, ES5 lint, unit, e2e
 ```
 
-The tests load the engines and curriculum in a sandbox, generate every level across 12 seeds, and check that each robot and Python reference solution passes its own `grade()`. They also check MiniPy's error names. CI runs them on every push and pull request.
+- **Unit:** loads the engines and curriculum in a sandbox, generates every level across 12 seeds, and checks that each robot and Python reference solution passes its own `grade()`. It also checks MiniPy's error names.
+- **E2E:** serves the deployable files with the same headers as `vercel.json`, then drives headless Chrome through the profile picker, every screen, a real practice round, the lock on deep links, and all 432 sampled exercises. It fails on any page error, console error or CSP violation.
+
+## CI/CD and workflow
+
+`main` only changes through pull requests, and **merging is always manual**.
+
+| Check (GitHub Actions) | What it verifies |
+| --- | --- |
+| `lint` | syntax, app code is plain ES5, configs are valid JSON, no third-party URLs |
+| `unit (node 18/20/22)` | smoke tests on three Node versions |
+| `e2e (headless chrome)` | full browser run under the production CSP |
+| `commit authors` | every PR commit is authored by `krisnaparahita`, with no co-author trailers |
+| `Vercel` | the preview deployment builds; the preview URL is posted on the PR |
+
+Branch protection on `main` requires all of these checks to pass. When a PR is merged, Vercel deploys production to kidcoder.web.id.
 
 ## Project structure
 
@@ -80,7 +96,7 @@ Layers only depend downward: UI → learning rules → engines → platform. See
 
 The site is deployed on Vercel as the project **`kidcoder-lab`**, with the custom domain `kidcoder.web.id`.
 
-- Pushing to `main` deploys to production. Other branches and pull requests get preview URLs.
+- Merging a PR into `main` deploys to production. Every pull request gets its own preview URL.
 - [`vercel.json`](vercel.json) turns off the build and install steps (the repo root is the output), and sets security headers (strict CSP, `nosniff`, `DENY` framing, a locked-down Permissions-Policy) and cache rules (`index.html` is always revalidated, and JS/CSS is cached for 1 hour).
 - [`.vercelignore`](.vercelignore) keeps docs, tests and repo metadata out of the deployment, so only `index.html`, `css/`, `js/` and `assets/` get published.
 

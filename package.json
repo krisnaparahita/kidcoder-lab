@@ -12,7 +12,10 @@
   "scripts": {
     "start": "npx --yes serve@14 -l 3000 .",
     "test": "node --test test/*.test.js",
-    "check": "for f in js/*/*.js test/*.js; do node --check \"$f\" || exit 1; done"
+    "test:e2e": "node test/e2e.mjs",
+    "check": "for f in js/*/*.js test/*.js test/*.mjs; do node --check \"$f\" || exit 1; done",
+    "lint:es5": "for f in js/*/*.js; do npx --yes acorn@8.14.0 --ecma5 --silent \"$f\" || exit 1; done",
+    "verify": "npm run check && npm run lint:es5 && npm test && npm run test:e2e"
   },
   "engines": {
     "node": ">=18"

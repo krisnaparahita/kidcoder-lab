@@ -13,8 +13,8 @@ Thanks for helping kids learn to code!
 
 1. Fork and create a branch: `git checkout -b feat/my-change`
 2. Run the app locally: `npm start` (or open `index.html`)
-3. Run the checks: `npm test && npm run check`
-4. Open a pull request. Vercel posts a preview URL you can try on a phone or tablet.
+3. Run the checks: `npm run verify` (the same checks CI runs)
+4. Open a pull request into `main`. CI must pass, and Vercel posts a preview URL you can try on a phone or tablet. A maintainer merges manually.
 
 ## Adding exercises
 

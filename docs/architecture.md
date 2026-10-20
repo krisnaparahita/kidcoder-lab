@@ -369,7 +369,7 @@ kidcoder.progress.v1.<profileId>
 | --- | --- |
 | Engines | `test/smoke.test.js` (`npm test`, runs in CI): parse/run Python snippets, assert output and error names; simulator run against reference solutions |
 | Generators | Node harness: build 12 seeds × every level, assert every reference solution passes its own `grade()` (1 700+ exercises per run) |
-| UI | Headless Chromium end-to-end: create profile → play every level to the results screen, assert no console or page errors |
+| UI | `test/e2e.mjs` (`npm run test:e2e`, runs in CI under the production CSP): create profile, visit every screen, start a practice round, check the deep-link lock, render every exercise type; fail on any page error, console error or CSP violation |
 | Regression hooks | `data-*` attributes (`data-x/data-y`, `data-color`, `data-op`, `data-id`) and the exposed `App.Runner.state` make the DOM scriptable by tests |
 
 ---
