@@ -367,7 +367,7 @@ kidcoder.progress.v1.<profileId>
 
 | Layer | Method |
 | --- | --- |
-| Engines | Node harness: parse/run Python snippets, assert output and error names; simulator run against reference solutions |
+| Engines | `test/smoke.test.js` (`npm test`, runs in CI): parse/run Python snippets, assert output and error names; simulator run against reference solutions |
 | Generators | Node harness: build 12 seeds × every level, assert every reference solution passes its own `grade()` (1 700+ exercises per run) |
 | UI | Headless Chromium end-to-end: create profile → play every level to the results screen, assert no console or page errors |
 | Regression hooks | `data-*` attributes (`data-x/data-y`, `data-color`, `data-op`, `data-id`) and the exposed `App.Runner.state` make the DOM scriptable by tests |
@@ -376,16 +376,21 @@ kidcoder.progress.v1.<profileId>
 
 ## 13. Deployment
 
-Static files only. Copy the folder to any host (Nginx, GitHub Pages, S3, an intranet
-share) or open `index.html` directly. Recommended: serve over HTTPS so
-`localStorage` is isolated per origin, plus
+Static files only — no build step. Production runs on **Vercel** (project `kidcoder-lab`,
+domain `kidcoder.web.id`) via the Git integration: `main` → production, other branches →
+preview URLs.
 
-```nginx
-Cache-Control: no-cache        # for index.html
-Cache-Control: max-age=31536000, immutable   # for css/ and js/
-```
+* `vercel.json` disables build/install, serves the repo root, and sets headers:
+  a strict `Content-Security-Policy` (`script-src 'self'`, no third-party origins),
+  `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`,
+  `Permissions-Policy`.
+* Caching: `index.html` → `no-cache`; `css/` and `js/` → `max-age=3600, must-revalidate`.
+  File names are not content-hashed, so long `immutable` caching would serve stale code
+  after a deploy.
+* `.vercelignore` keeps `docs/`, `test/` and repo metadata out of the deployment.
 
----
+Any other static host (Nginx, GitHub Pages, S3, an intranet share) or opening
+`index.html` directly also works. Serve over HTTPS so `localStorage` is isolated per origin.
 
 ## 14. Extension roadmap
 

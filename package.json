@@ -1,0 +1,20 @@
+{
+  "name": "kidcoder-lab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A gradual coding platform for kids 6+: pixel coordinates, robot commands, logic puzzles and real Python. Runs fully in the browser.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krisnaparahita/kidcoder-lab.git"
+  },
+  "homepage": "https://kidcoder.web.id",
+  "scripts": {
+    "start": "npx --yes serve@14 -l 3000 .",
+    "test": "node --test test/*.test.js",
+    "check": "for f in js/*/*.js test/*.js; do node --check \"$f\" || exit 1; done"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

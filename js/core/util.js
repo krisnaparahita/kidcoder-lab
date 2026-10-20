@@ -11,8 +11,8 @@ window.App = window.App || {};
   /* ------------------------------ RNG ------------------------------ */
 
   function hashString(str) {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < str.length; i++) {
+    var h = 2166136261 >>> 0;
+    for (var i = 0; i < str.length; i++) {
       h ^= str.charCodeAt(i);
       h = Math.imul(h, 16777619);
     }
@@ -21,10 +21,10 @@ window.App = window.App || {};
 
   /** Deterministic 32-bit PRNG (mulberry32). Same seed -> same exercise. */
   function mulberry32(seed) {
-    let a = seed >>> 0;
+    var a = seed >>> 0;
     return function () {
       a = (a + 0x6d2b79f5) >>> 0;
-      let t = a;
+      var t = a;
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -36,8 +36,8 @@ window.App = window.App || {};
    * Deterministic output lets us grade without storing full answers.
    */
   function RNG(seed) {
-    const next = mulberry32(typeof seed === 'string' ? hashString(seed) : seed >>> 0);
-    const api = {
+    var next = mulberry32(typeof seed === 'string' ? hashString(seed) : seed >>> 0);
+    var api = {
       seed: seed,
       next: next,
       /** float in [0,1) */
@@ -49,10 +49,10 @@ window.App = window.App || {};
       pick: function (arr) { return arr[Math.floor(next() * arr.length)]; },
       /** Fisher-Yates copy */
       shuffle: function (arr) {
-        const a = arr.slice();
-        for (let i = a.length - 1; i > 0; i--) {
-          const j = Math.floor(next() * (i + 1));
-          const t = a[i]; a[i] = a[j]; a[j] = t;
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(next() * (i + 1));
+          var t = a[i]; a[i] = a[j]; a[j] = t;
         }
         return a;
       },
@@ -62,10 +62,10 @@ window.App = window.App || {};
       },
       /** weighted pick: items = [{weight, ...}] */
       weighted: function (items) {
-        let total = 0;
-        for (let i = 0; i < items.length; i++) total += (items[i].weight || 0);
-        let r = next() * total;
-        for (let i = 0; i < items.length; i++) {
+        var total = 0;
+        for (var i = 0; i < items.length; i++) total += (items[i].weight || 0);
+        var r = next() * total;
+        for (var i = 0; i < items.length; i++) {
           r -= (items[i].weight || 0);
           if (r <= 0) return items[i];
         }
@@ -82,24 +82,24 @@ window.App = window.App || {};
    * Tag supports `tag.class1.class2#id` shorthand.
    */
   function el(spec, attrs, children) {
-    let tag = 'div', id = null, classes = [];
+    var tag = 'div', id = null, classes = [];
     if (typeof spec === 'string') {
-      const m = /^([a-zA-Z0-9]+)/.exec(spec);
+      var m = /^([a-zA-Z0-9]+)/.exec(spec);
       tag = m ? m[1] : 'div';
-      const rest = spec.slice(tag.length);
+      var rest = spec.slice(tag.length);
       rest.split(/(?=[.#])/).forEach(function (part) {
         if (!part) return;
         if (part[0] === '.') classes.push(part.slice(1));
         else if (part[0] === '#') id = part.slice(1);
       });
     }
-    const node = document.createElement(tag);
+    var node = document.createElement(tag);
     if (id) node.id = id;
     if (classes.length) node.className = classes.join(' ');
 
     if (attrs) {
       Object.keys(attrs).forEach(function (k) {
-        const v = attrs[k];
+        var v = attrs[k];
         if (v === null || v === undefined || v === false) return;
         if (k === 'class' || k === 'className') {
           node.className = (node.className ? node.className + ' ' : '') + v;
@@ -148,16 +148,16 @@ window.App = window.App || {};
   }
 
   function todayKey() {
-    const d = new Date();
+    var d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
   function humanTime(ms) {
-    const s = Math.round(ms / 1000);
+    var s = Math.round(ms / 1000);
     if (s < 60) return s + 's';
-    const m = Math.floor(s / 60);
+    var m = Math.floor(s / 60);
     if (m < 60) return m + 'm ' + (s % 60) + 's';
-    const h = Math.floor(m / 60);
+    var h = Math.floor(m / 60);
     return h + 'h ' + (m % 60) + 'm';
   }
 
@@ -168,7 +168,7 @@ window.App = window.App || {};
   function clone(obj) {
     if (obj === null || typeof obj !== 'object') return obj;
     if (Array.isArray(obj)) return obj.map(clone);
-    const out = {};
+    var out = {};
     Object.keys(obj).forEach(function (k) { out[k] = clone(obj[k]); });
     return out;
   }

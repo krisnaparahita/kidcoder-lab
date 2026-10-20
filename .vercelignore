@@ -1,0 +1,9 @@
+# Only the static app (index.html, css/, js/, assets/) is deployed.
+.github
+docs
+test
+*.md
+LICENSE
+package.json
+package-lock.json
+.editorconfig
