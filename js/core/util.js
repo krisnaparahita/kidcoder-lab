@@ -108,7 +108,11 @@ window.App = window.App || {};
         } else if (k === 'html') {
           node.innerHTML = v;
         } else if (k === 'style' && typeof v === 'object') {
-          Object.assign(node.style, v);
+          // custom properties (--cat) need setProperty; plain assignment ignores them
+          Object.keys(v).forEach(function (sk) {
+            if (sk.slice(0, 2) === '--') node.style.setProperty(sk, v[sk]);
+            else node.style[sk] = v[sk];
+          });
         } else if (k === 'dataset' && typeof v === 'object') {
           Object.assign(node.dataset, v);
         } else if (k.slice(0, 2) === 'on' && typeof v === 'function') {
@@ -122,10 +126,13 @@ window.App = window.App || {};
     }
 
     if (children != null) {
-      (Array.isArray(children) ? children : [children]).forEach(function (c) {
-        if (c === null || c === undefined || c === false) return;
-        node.appendChild(typeof c === 'object' && c.nodeType ? c : document.createTextNode(String(c)));
-      });
+      (function add(list) {
+        (Array.isArray(list) ? list : [list]).forEach(function (c) {
+          if (c === null || c === undefined || c === false) return;
+          if (Array.isArray(c)) { add(c); return; }   // nested lists, e.g. items.map(...)
+          node.appendChild(typeof c === 'object' && c.nodeType ? c : document.createTextNode(String(c)));
+        });
+      })(children);
     }
     return node;
   }

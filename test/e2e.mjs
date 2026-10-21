@@ -125,6 +125,7 @@ try {
     await evaluate(`App.go('${route}')`);
     await sleep(250);
     check('route ' + route, (await evaluate(`document.querySelector('.screen').children.length`)) > 0);
+    check('route ' + route + ' has no stringified objects', await evaluate(`(function(t){return t.indexOf('[object ')<0 && !/\\bundefined\\b|\\bNaN\\b/.test(t);})(document.querySelector('.screen').textContent)`));
   }
 
   const first = await evaluate(`App.Curriculum.LEVELS[0].id`);
@@ -133,6 +134,27 @@ try {
   await evaluate(`Array.prototype.find.call(document.querySelectorAll('button'),function(b){return /Start practice/.test(b.textContent)}).click()`);
   await sleep(500);
   check('practice round starts', await evaluate(`!!document.querySelector('.ex-prompt') && App.Runner.state.set.items.length > 0`));
+
+  const logic = await evaluate(`App.Curriculum.LEVELS.filter(function(l){return l.cat==='logic'})[0].id`);
+  await evaluate(`(function(){var d=App.Progress.get();App.Curriculum.LEVELS.forEach(function(l){if(l.cat!=='python'){d.levels[l.id]=d.levels[l.id]||{};d.levels[l.id].unlocked=true;d.levels[l.id].mastered=true;}});App.Progress.save();})()`);
+  await evaluate(`App.go('#/level/${logic}')`);
+  await sleep(300);
+  await evaluate(`Array.prototype.find.call(document.querySelectorAll('button'),function(b){return /Start practice/.test(b.textContent)}).click()`);
+  await sleep(300);
+  let answered = 0;
+  for (let k = 0; k < 12; k++) {
+    const ok = await evaluate(`(function(){var ex=App.Runner.state.ex, b=document.querySelectorAll('.choice');
+      if(!ex||!ex.choices||!b.length) return false;
+      for(var i=0;i<ex.choices.length;i++) if(ex.grade(ex.choices[i].value).correct){ b[i].click(); return true; }
+      return false; })()`);
+    if (!ok) break;
+    answered++;
+    await sleep(300);
+    const label = await evaluate(`(function(){var b=Array.prototype.find.call(document.querySelectorAll('button'),function(b){return /Next exercise|See results/.test(b.textContent)});if(!b)return '';var t=b.textContent;b.click();return t;})()`);
+    await sleep(300);
+    if (/See results/.test(label)) break;
+  }
+  check('a full round reaches the results screen', await evaluate(`!!document.querySelector('.summary .bigstars')`), answered + ' answered');
 
   const locked = await evaluate(`App.Curriculum.LEVELS[App.Curriculum.LEVELS.length-1].id`);
   await evaluate(`App.go('#/level/${locked}')`);

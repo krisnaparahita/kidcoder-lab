@@ -342,8 +342,14 @@ kidcoder.progress.v1.<profileId>
 * **Chrome**: sticky top bar with brand, world shortcuts, XP/star chips and the active
   profile button. Hidden on the profile picker.
 * **Screens** in `home.js`, **level flow** in `runner.js`, **widgets** in `render-*.js`.
-* Styling is plain CSS with custom properties; a category colour (`--cat`) is injected
-  per card so each world has its own identity.
+* Styling is plain CSS with custom properties in a "clay" design system shared with MathLand
+  (cream surfaces, 3px outlines, a hard bottom edge that squashes on press, Fredoka/Nunito).
+  `Curriculum.catVars(cat)` returns `--cat`, `--cat-soft`, `--cat-line`, `--cat-text` and
+  `--cat-edge`, which are injected per element so each world has its own colours.
+  `U.el` sets `--*` keys with `style.setProperty` (plain assignment silently drops them).
+* `fx.js` adds decorative confetti, bursts and floating shapes; all are `aria-hidden` and
+  disabled under `prefers-reduced-motion` or the in-app reduced-motion setting.
+* Stickers (`Curriculum.STICKERS`) are derived from total stars, so they need no stored state.
 * `U.el('tag.class#id', attrs, children)` is the only DOM construction primitive — it
   keeps templates declarative without a framework.
 
@@ -353,7 +359,7 @@ kidcoder.progress.v1.<profileId>
 
 | Concern | Measure |
 | --- | --- |
-| Payload | ~120 KB JS + ~25 KB CSS, no images, no fonts, no requests |
+| Payload | ~130 KB JS + ~35 KB CSS + 69 KB self-hosted woff2 fonts (Fredoka, Nunito); no images, no third-party requests |
 | First interaction | No compile step; scripts execute on parse |
 | Grid sizes | ≤ 10 × 10 = 100 cells; board rebuilt only on repaint |
 | Simulation | ≤ 3 000 steps, ≤ 600 recorded frames |

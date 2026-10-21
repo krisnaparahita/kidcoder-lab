@@ -33,7 +33,8 @@ A world opens once the kid has mastered 3 levels of the world before it. Age ban
 - **Specific feedback.** "You missed 2 gems", expected vs. actual output, the error line, and the solution shown after repeated failures.
 - **Several kids, one device.** Profiles with avatars, XP, stars, badges, streaks, a gallery and a parent dashboard. Each profile can be exported to and imported from a JSON file.
 - **Private by design.** No accounts, no server, no analytics, no cookies, no third-party requests. Everything is stored in the browser's `localStorage`.
-- **Lightweight.** About 120 KB of plain JavaScript and CSS, with no framework, no bundler and no build step. It also runs straight from `file://`.
+- **Playful clay look.** It shares MathLand's design language: a warm cream palette, Fredoka + Nunito fonts, chunky outlined cards with a pressable bottom edge, tilted icon tiles, highlighter headlines, floating shapes, confetti on great rounds, and a sticker board that fills up as stars are earned. Every animation respects the reduced-motion setting.
+- **Lightweight.** About 130 KB of plain JavaScript and CSS plus 69 KB of self-hosted fonts, with no framework, no bundler and no build step. It also runs straight from `file://`.
 
 ## Quick start
 
@@ -76,11 +77,12 @@ Branch protection on `main` requires all of these checks to pass. When a PR is m
 
 ```
 index.html          entry point; plain <script> tags, load order matters
-css/                theme tokens + screen/widget styles
+css/                theme tokens (clay design system) + screen/widget styles
+assets/fonts/       self-hosted Fredoka + Nunito (SIL OFL 1.1)
 js/core/            util (RNG, DOM builder), storage, audio, progress rules, router
 js/engines/         pixel grid, robot simulator, MiniPy interpreter
 js/data/            curriculum (single source of truth), sprites, exercise generators
-js/ui/              screens, level runner, per-world renderers
+js/ui/              screens, level runner, per-world renderers, fx (confetti, shapes)
 test/               Node smoke tests
 docs/               requirements + architecture documents
 ```
@@ -126,4 +128,4 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE) © krisnaparahita
+[MIT](LICENSE) © krisnaparahita. Fonts in `assets/fonts/` are licensed under the [SIL Open Font License 1.1](assets/fonts/OFL-Fredoka.txt).

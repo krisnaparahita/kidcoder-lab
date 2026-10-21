@@ -17,7 +17,8 @@
       title: 'Pixel Lab',
       icon: '🎨',
       age: '6+',
-      colour: '#ff6b6b',
+      colour: '#f75d59',
+      tint: { soft: '#ffe1dd', line: '#ffb1aa', text: '#b8322f', edge: '#c2413d' },
       blurb: 'Learn how a picture is made of tiny squares — and how to describe every square with numbers.',
       skills: ['Coordinates', 'Following instructions', 'Precision'],
       requires: null
@@ -27,7 +28,8 @@
       title: 'Robot Lab',
       icon: '🤖',
       age: '6+',
-      colour: '#4dabf7',
+      colour: '#36b6e9',
+      tint: { soft: '#d9f0fb', line: '#a3dbf4', text: '#19769c', edge: '#1f86b0' },
       blurb: 'Arrange command blocks, run the simulation, and watch your robot walk, turn and collect.',
       skills: ['Sequencing', 'Debugging', 'Loops', 'Conditions'],
       requires: { category: 'pixels', mastered: 3 }
@@ -37,7 +39,8 @@
       title: 'Logic Lab',
       icon: '🧩',
       age: '7+',
-      colour: '#9775fa',
+      colour: '#a87eeb',
+      tint: { soft: '#ece3fd', line: '#d1bdf7', text: '#6b45b5', edge: '#7c57c4' },
       blurb: 'Spot patterns, break big jobs into small steps, and think like a detective.',
       skills: ['Patterns', 'Decomposition', 'Classification'],
       requires: { category: 'pixels', mastered: 3 }
@@ -47,7 +50,8 @@
       title: 'Python Lab',
       icon: '🐍',
       age: '9+',
-      colour: '#38d9a9',
+      colour: '#2cce99',
+      tint: { soft: '#d9f5e8', line: '#a3e6c8', text: '#11795a', edge: '#189b72' },
       blurb: 'Real Python — typing code, running it, and drawing with a turtle.',
       skills: ['Syntax', 'Variables', 'Loops', 'Functions', 'Drawing'],
       requires: { category: 'robot', mastered: 3 }
@@ -471,7 +475,45 @@
     { id: 'scholar', icon: '📚', title: 'Scholar', desc: 'Answer 200 exercises.', test: function (p) { return p.totalAttempts >= 200; } }
   ];
 
+  /* Stickers unlock from the total stars a profile has, so nothing extra is
+   * stored. Each one needs more stars than the one before. */
+  var STICKERS = [
+    { id: 'chick', emoji: '🐣', name: 'First steps', stars: 2, cat: 'pixels' },
+    { id: 'paint', emoji: '🖍️', name: 'Crayon', stars: 5, cat: 'logic' },
+    { id: 'robot', emoji: '🤖', name: 'Robot buddy', stars: 9, cat: 'robot' },
+    { id: 'gem', emoji: '💎', name: 'Shiny gem', stars: 14, cat: 'python' },
+    { id: 'rocket', emoji: '🚀', name: 'Rocket', stars: 20, cat: 'pixels' },
+    { id: 'turtle', emoji: '🐢', name: 'Turtle', stars: 27, cat: 'python' },
+    { id: 'rainbow', emoji: '🌈', name: 'Rainbow', stars: 35, cat: 'robot' },
+    { id: 'brain', emoji: '🧠', name: 'Big brain', stars: 44, cat: 'logic' },
+    { id: 'snake', emoji: '🐍', name: 'Python', stars: 54, cat: 'python' },
+    { id: 'unicorn', emoji: '🦄', name: 'Unicorn', stars: 66, cat: 'logic' },
+    { id: 'trophy', emoji: '🏆', name: 'Trophy', stars: 80, cat: 'pixels' },
+    { id: 'crown', emoji: '👑', name: 'Code king', stars: 100, cat: 'robot' }
+  ];
+
+  function stickersUnlocked(stars) { return STICKERS.filter(function (s) { return stars >= s.stars; }); }
+  function stickersBetween(before, after) { return STICKERS.filter(function (s) { return before < s.stars && after >= s.stars; }); }
+  function nextSticker(stars) { return STICKERS.filter(function (s) { return stars < s.stars; })[0] || null; }
+
+  /** CSS custom properties that theme any element in a world's colours. */
+  function catVars(cat) {
+    var t = (cat && cat.tint) || {};
+    return {
+      '--cat': cat ? cat.colour : '#d42f34',
+      '--cat-soft': t.soft || '#f4ecdd',
+      '--cat-line': t.line || '#e7dfcf',
+      '--cat-text': t.text || '#2a2c3f',
+      '--cat-edge': t.edge || 'rgba(0,0,0,.25)'
+    };
+  }
+
   App.Curriculum = {
+    catVars: catVars,
+    STICKERS: STICKERS,
+    stickersUnlocked: stickersUnlocked,
+    stickersBetween: stickersBetween,
+    nextSticker: nextSticker,
     CATEGORIES: CATEGORIES,
     LEVELS: LEVELS,
     BADGES: BADGES,
