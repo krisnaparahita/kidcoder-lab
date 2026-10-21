@@ -22,10 +22,17 @@
     brand.onclick = function () { App.go('#/map'); };
     bar.appendChild(brand);
 
-    var nav = U.el('div.row', { style: { gap: '6px' } }, [
-      U.el('button.btn.small.ghost', { text: '🗺️ Map', onclick: function () { App.go('#/map'); } }),
-      U.el('button.btn.small.ghost', { text: '📊', title: 'Progress', onclick: function () { App.go('#/dashboard'); } }),
-      U.el('button.btn.small.ghost', { text: '🖼️', title: 'Gallery', onclick: function () { App.go('#/gallery'); } })
+    function navItem(route, icon, label) {
+      return U.el('button.nav-item', {
+        dataset: { route: route },
+        title: label,
+        onclick: function () { App.go('#/' + route); }
+      }, [U.el('span', { text: icon }), U.el('span.nav-label', { text: label })]);
+    }
+    var nav = U.el('nav.nav', { 'aria-label': 'Main' }, [
+      navItem('map', '🗺️', 'Map'),
+      navItem('dashboard', '📊', 'Progress'),
+      navItem('gallery', '🖼️', 'Gallery')
     ]);
     bar.appendChild(nav);
 
@@ -42,8 +49,8 @@
     var p = App.Progress.profile();
     if (!p) return;
     var d = App.Progress.get();
-    me.appendChild(U.el('span.stat-chip', { text: '✨ ' + (d.xp || 0) }));
-    me.appendChild(U.el('span.stat-chip', { text: '⭐ ' + (d.stars || 0) }));
+    me.appendChild(U.el('span.stat-chip.xp', { title: 'XP', text: '✨ ' + (d.xp || 0) }));
+    me.appendChild(U.el('span.stat-chip.star', { title: 'Stars', text: '⭐ ' + (d.stars || 0) }));
     var who = U.el('button.who', {
       title: 'Settings',
       onclick: function () { App.go('#/settings'); }
@@ -105,6 +112,13 @@
     }
     chromeEl.classList.remove('hidden');
     App.refreshChrome();
+    var navName = route.name === 'category' || route.name === 'level' ? 'map' : route.name;
+    Array.prototype.forEach.call(chromeEl.querySelectorAll('.nav-item'), function (b) {
+      var on = b.getAttribute('data-route') === navName;
+      b.classList.toggle('on', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    window.scrollTo(0, 0);
     U.clear(screenEl);
 
     if (route.name === 'level' && route.arg) {

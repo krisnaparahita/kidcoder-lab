@@ -103,10 +103,10 @@
 
     function clear() {
       ctx.clearRect(0, 0, size, size);
-      ctx.fillStyle = '#fbfcff';
+      ctx.fillStyle = '#fffdf6';
       ctx.fillRect(0, 0, size, size);
       // faint grid
-      ctx.strokeStyle = '#eef1f9';
+      ctx.strokeStyle = '#f3ecdc';
       ctx.lineWidth = 1;
       for (var g = 0; g <= size; g += 32) {
         ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, size); ctx.stroke();

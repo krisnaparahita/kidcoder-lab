@@ -25,25 +25,25 @@
 
   /* ------------------------------- helpers ----------------------------- */
 
-  function catColour(level) {
-    var cat = C.categoryOf(level.id);
-    return cat ? cat.colour : 'var(--primary)';
+  function catVars(level) {
+    return C.catVars(C.categoryOf(level.id));
   }
 
   function header(level, subtitle) {
     return U.el('div.runner-head', {}, [
       U.el('button.btn.icon.ghost', { text: '←', title: 'Back to the map', onclick: function () { App.audio.play('click'); App.go('#/map'); } }),
+      U.el('span.tile.sm', { style: catVars(level), text: level.icon }),
       U.el('div', {}, [
-        U.el('h2', { text: level.icon + ' ' + level.title }),
+        U.el('h2', { text: level.title }),
         U.el('div.muted', { text: subtitle })
       ]),
       U.el('div.spacer'),
-      U.el('span.pill.tag-cat', { style: { '--cat': catColour(level) }, text: (C.categoryOf(level.id) || {}).title || '' })
+      U.el('span.pill.tag-cat', { style: catVars(level), text: (C.categoryOf(level.id) || {}).title || '' })
     ]);
   }
 
   function dots(n, index, marks) {
-    var d = U.el('div.dots');
+    var d = U.el('div.dots', { role: 'img', 'aria-label': 'Exercise ' + (index + 1) + ' of ' + n });
     for (var i = 0; i < n; i++) {
       var cls = '';
       if (marks[i] === true) cls = 'done';
@@ -59,15 +59,21 @@
   function renderLearn(container, level) {
     var stat = App.store.getLevelStat(App.Progress.get(), level.id, true);
     var cat = C.categoryOf(level.id);
-    var card = U.el('div.concept', { style: { '--cat': cat.colour } }, [
-      U.el('div.row.wrap', { style: { marginBottom: '10px' } }, [
-        U.el('span.pill', { text: 'Step ' + (level.positionInCategory + 1) + ' of ' + cat.levels.length }),
-        U.el('span.pill', { text: cat.icon + ' ' + cat.title }),
-        U.el('span.pill', { text: 'age ' + cat.age })
+    var card = U.el('div.concept.rise', { style: C.catVars(cat) }, [
+      U.el('div.concept-top', {}, [
+        U.el('span.tile.floaty-tile', { text: level.icon }),
+        U.el('div', {}, [
+          U.el('div.row.wrap', { style: { marginBottom: '6px', gap: '8px' } }, [
+            U.el('span.pill.tag-cat', { text: 'Step ' + (level.positionInCategory + 1) + ' of ' + cat.levels.length }),
+            U.el('span.pill.sun', { text: cat.icon + ' ' + cat.title }),
+            U.el('span.pill.mint', { text: 'age ' + cat.age })
+          ]),
+          U.el('h2', { style: { margin: 0 }, text: "Let's learn something new!" })
+        ])
       ]),
-      U.el('h2', { text: level.icon + ' ' + level.title }),
+      U.el('div.teach-title', { text: '📚 Learn the idea' }),
       U.el('ul.teach', {}, level.teach.map(function (t) { return U.el('li', { html: t }); })),
-      U.el('div.big-note', { html: level.concept }),
+      U.el('div.big-note', {}, [U.el('span.big-note-icon', { text: '💡' }), U.el('div', { html: level.concept })]),
       U.el('div.row.wrap', { style: { marginTop: '16px' } }, [
         U.el('button.btn.primary.big', {
           text: '▶ Start practice (' + level.exercise.count + ' exercises)',
@@ -154,15 +160,19 @@
     }
     actions.appendChild(hintBtn);
 
-    var card = U.el('div.ex-card', {}, [
+    var total = state.set.items.length;
+    var card = U.el('div.ex-card.rise', { style: catVars(level) }, [
+      U.el('div.ex-track', {}, [
+        U.el('span.ex-count', { text: (state.index + 1) + ' / ' + total }),
+        U.el('div.track', {}, [U.el('i', { style: { width: (state.index / total * 100) + '%' } })]),
+        dots(total, state.index, state.marks)
+      ]),
       U.el('div.ex-head', {}, [
-        U.el('div.ex-prompt', { html: '<b>Exercise ' + (state.index + 1) + ' of ' + state.set.items.length + '</b><br>' + ex.prompt }),
-        U.el('div.spacer'),
-        dots(state.set.items.length, state.index, state.marks)
+        U.el('div.ex-prompt', { html: ex.prompt })
       ]),
       work,
-      actions,
-      feedback
+      feedback,
+      actions
     ]);
 
     U.mount(container, [
@@ -197,10 +207,20 @@
       App.audio.play('correct');
       if (state.renderer && state.renderer.onCorrect) state.renderer.onCorrect(res);
 
-      feedback.appendChild(U.el('div.feedback.ok.pop', {}, [
-        U.el('div', { text: '✅ ' + res.message }),
-        U.el('div.muted', { text: '+' + (ex.xp || 5) + ' XP' + (rec.combo > 2 ? '  ·  combo ×' + rec.combo : '') })
-      ]));
+      var cheer = App.fx.cheer();
+      var okBox = U.el('div.feedback.ok.pop', {}, [
+        U.el('span.fb-emoji.wiggle', { text: cheer.emoji }),
+        U.el('div', {}, [
+          U.el('div.fb-title', { text: cheer.word }),
+          U.el('div', { text: res.message }),
+          U.el('div.fb-xp', {}, [
+            U.el('span.pill.sun', { text: '+' + (ex.xp || 5) + ' XP' }),
+            rec.combo > 2 ? U.el('span.pill.coral', { text: '🔥 combo ×' + rec.combo }) : null
+          ])
+        ])
+      ]);
+      feedback.appendChild(okBox);
+      App.fx.burst(okBox.querySelector('.fb-emoji'));
 
       var last = state.index >= state.set.items.length - 1;
       state.actionsBox.appendChild(U.el('button.btn.primary.big', {
@@ -226,8 +246,12 @@
       }
       App.audio.play('wrong');
       feedback.appendChild(U.el('div.feedback.bad.shake', {}, [
-        U.el('div', { text: '❌ ' + res.message }),
-        res.detail && res.detail.error ? U.el('pre', { text: res.detail.error.hint || '' }) : null
+        U.el('span.fb-emoji', { text: state.wrongCount > 1 ? '🤔' : '🙈' }),
+        U.el('div', {}, [
+          U.el('div.fb-title', { text: state.wrongCount > 1 ? 'Almost there!' : 'Not quite!' }),
+          U.el('div', { text: res.message }),
+          res.detail && res.detail.error ? U.el('pre', { text: res.detail.error.hint || '' }) : null
+        ])
       ]));
 
       if (state.renderer && state.renderer.retryable) {
@@ -284,6 +308,7 @@
     var elapsed = Date.now() - state.startedAt;
     App.Progress.levelTime(level.id, elapsed);
 
+    var starsBefore = App.Progress.get().stars || 0;
     var result = App.Progress.completeRun(level.id, {
       correct: state.correct,
       total: state.set.items.length,
@@ -291,15 +316,27 @@
       timeMs: elapsed
     });
 
-    var stars = '';
-    for (var i = 0; i < 3; i++) stars += i < result.stars ? '⭐' : '☆';
+    var starRow = U.el('div.bigstars', { role: 'img', 'aria-label': result.stars + ' of 3 stars' });
+    for (var i = 0; i < 3; i++) {
+      starRow.appendChild(U.el('span.bigstar' + (i < result.stars ? '.on' : ''), {
+        style: { animationDelay: (0.15 + i * 0.18) + 's' },
+        text: i < result.stars ? '⭐' : '☆'
+      }));
+    }
+    var title = result.stars === 3 ? 'Perfect round!' : result.stars === 2 ? 'Great job!' : result.stars === 1 ? 'Nice work!' : 'Keep practising!';
 
-    var box = U.el('div.ex-card.summary', {}, [
-      U.el('div.bigstars', { text: stars }),
-      U.el('h2', { text: state.correct + ' / ' + state.set.items.length + ' correct' }),
-      U.el('div.xp', { text: '+' + state.xp + ' XP' }),
-      U.el('p.muted', { text: 'Accuracy ' + Math.round(result.accuracy * 100) + '% · time ' + U.humanTime(elapsed) })
+    var box = U.el('div.ex-card.summary.rise', { style: catVars(level) }, [
+      App.fx.shapes(),
+      starRow,
+      U.el('h2.summary-title', { text: title }),
+      U.el('div.summary-stats', {}, [
+        U.el('div.sstat', {}, [U.el('b', { text: state.correct + '/' + state.set.items.length }), U.el('span', { text: 'correct' })]),
+        U.el('div.sstat', {}, [U.el('b', { text: '+' + state.xp }), U.el('span', { text: 'XP' })]),
+        U.el('div.sstat', {}, [U.el('b', { text: Math.round(result.accuracy * 100) + '%' }), U.el('span', { text: 'accuracy' })]),
+        U.el('div.sstat', {}, [U.el('b', { text: U.humanTime(elapsed) }), U.el('span', { text: 'time' })])
+      ])
     ]);
+    if (result.stars >= 2 || result.justMastered) App.fx.confetti(result.stars === 3 ? 110 : 60);
 
     if (result.justMastered) {
       App.audio.play('win');
@@ -315,6 +352,19 @@
     result.unlockedLevels.forEach(function (l) {
       box.appendChild(U.el('div.feedback.ok', { text: '🔓 New level unlocked: ' + l.icon + ' ' + l.title }));
     });
+    var newStickers = C.stickersBetween(starsBefore, App.Progress.get().stars || 0);
+    if (newStickers.length) {
+      box.appendChild(U.el('div.sticker-pop.pop', {}, [
+        U.el('div.sticker-row', {}, newStickers.map(function (st) {
+          return U.el('span.sticker.on', { style: C.catVars(C.CATEGORIES.filter(function (c) { return c.id === st.cat; })[0]), text: st.emoji });
+        })),
+        U.el('div', {}, [
+          U.el('b', { text: 'New sticker' + (newStickers.length > 1 ? 's' : '') + '!' }),
+          U.el('div.muted', { text: newStickers.map(function (st) { return st.name; }).join(', ') + ' added to your sticker board.' })
+        ])
+      ]));
+    }
+
     result.newBadges.forEach(function (b) {
       App.audio.play('badge');
       box.appendChild(U.el('div.badge-pop', { style: { marginTop: '12px' } }, [

@@ -97,3 +97,25 @@ test('MiniPy reports real Python error names', () => {
   assert.strictEqual(MP.run('print(1 / 0)').error.name, 'ZeroDivisionError');
   assert.strictEqual(MP.run('while True:\n    pass').error.name, 'TimeoutError');
 });
+
+test('stickers unlock in increasing order and reference real worlds', () => {
+  const C = boot().Curriculum;
+  const ids = C.CATEGORIES.map((c) => c.id);
+  C.STICKERS.forEach((st, i) => {
+    assert.ok(ids.includes(st.cat), st.id + ' uses a real world');
+    if (i) assert.ok(st.stars > C.STICKERS[i - 1].stars, st.id + ' needs more stars than the one before');
+  });
+  assert.strictEqual(C.stickersUnlocked(0).length, 0);
+  assert.strictEqual(C.stickersBetween(0, C.STICKERS[1].stars).length, 2);
+  assert.strictEqual(C.nextSticker(1e6), null);
+});
+
+test('every world defines its full colour tint', () => {
+  const C = boot().Curriculum;
+  for (const cat of C.CATEGORIES) {
+    const v = C.catVars(cat);
+    for (const k of ['--cat', '--cat-soft', '--cat-line', '--cat-text', '--cat-edge']) {
+      assert.match(v[k], /^#[0-9a-f]{6}$/i, cat.id + ' ' + k);
+    }
+  }
+});
