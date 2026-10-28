@@ -69,8 +69,8 @@
     var shape = rng.chance(0.5) ? S.randomShape(rng, size) : S.randomVariant(rng);
     var src = shape.grid.w === size ? shape.grid : G.fitCentre(size, size, shape.grid);
     var list = G.toList(src);
-    // keep the list kid-sized
-    if (list.length > 24) list = rng.sample(list, 24);
+    // Eight addresses are enough to practise following a coordinate list.
+    if (list.length > 8) list = rng.sample(list, 8);
     // the target must contain exactly the pixels we ask for, otherwise the
     // exercise could never be solved
     src = G.fromList(size, size, list);
@@ -103,6 +103,10 @@
     var size = rng.int(6, 8);
     var shape = rng.chance(0.45) ? S.randomShape(rng, size) : S.randomVariant(rng);
     var src = shape.grid.w === size ? shape.grid : G.fitCentre(size, size, shape.grid);
+    // Keep picture-to-coordinate practice short enough to finish comfortably.
+    var list = G.toList(src);
+    if (list.length > 12) list = rng.sample(list, 12);
+    src = G.fromList(size, size, list);
     var palette = Array.from(new Set(G.toList(src).map(function (p) { return p.color; })));
     var ex = {
       id: makeId(level, rng.seed, i),
@@ -129,6 +133,9 @@
     var v = S.randomVariant(rng);
     var src = v.grid;
     var list = G.toList(src);
+    // A slightly longer list builds on px2 without requiring a full dense sprite.
+    if (list.length > 16) list = rng.sample(list, 16);
+    src = G.fromList(size, size, list);
     // Sort by row then column so the "code" reads like a file
     list.sort(function (a, b) { return a.y - b.y || a.x - b.x; });
     var palette = Array.from(new Set(list.map(function (p) { return p.color; })));

@@ -74,6 +74,42 @@ test('robot reference solutions reach the flag', () => {
   assert.ok(checked > 0);
 });
 
+test('short pixel tasks have matching instructions, targets and graders', () => {
+  const App = boot();
+  for (const [id, limit] of [['px2', 8], ['px3', 12], ['px4', 16]]) {
+    for (let s = 0; s < 100; s++) {
+      const set = App.Exercises.buildSet(App.Curriculum.byId[id], 'pixels' + s);
+      for (const ex of set.items) {
+        const target = ex.target || ex.source;
+        const points = App.Grid.toList(target);
+        assert.ok(points.length > 0 && points.length <= limit, id + ' point budget');
+        assert.ok(ex.grade(target).correct, id + ' target passes');
+        const incomplete = App.Grid.clone(target);
+        App.Grid.set(incomplete, points[0].x - 1, points[0].y - 1, null);
+        assert.ok(!ex.grade(incomplete).correct, id + ' missing pixel fails');
+        const instructions = ex.instructions || ex.code;
+        if (instructions) {
+          assert.ok(App.Grid.equals(target, App.Grid.fromList(ex.cols, ex.rows, instructions)), id + ' instructions match target');
+        }
+        assert.ok(points.every((p) => ex.palette.includes(p.color)), id + ' colours available');
+      }
+    }
+  }
+});
+
+test('every shortened set can earn mastery and unlock the next level', () => {
+  const App = boot();
+  App.Progress.attach(App.store.createProfile({ name: 'Short practice', age: 9 }));
+  for (const level of App.Curriculum.LEVELS) {
+    assert.ok(App.Curriculum.levelUnlocked(App.Progress.get(), level.id), level.id + ' unlocked');
+    const set = App.Exercises.buildSet(level, 'mastery');
+    assert.strictEqual(set.items.length, level.exercise.count);
+    for (const ex of set.items) App.Progress.record(level.id, true, ex.xp);
+    const result = App.Progress.completeRun(level.id, { correct: set.items.length, total: set.items.length });
+    assert.ok(result.justMastered, level.id + ' mastered in one perfect round');
+  }
+});
+
 test('python reference solutions pass their own tests', () => {
   const App = boot();
   let checked = 0;

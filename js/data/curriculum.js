@@ -68,8 +68,8 @@
         'Column 1 is the left edge. Row 1 is the top edge.'
       ],
       concept: 'Every pixel has an address: <b>(column, row)</b>. To find pixel (3, 2): go <b>right 3</b>, then <b>down 2</b>.',
-      exercise: { type: 'pixel', variant: 'find-cell', count: 7 },
-      mastery: { correct: 6, accuracy: 0.75 }
+      exercise: { type: 'pixel', variant: 'find-cell', count: 5 },
+      mastery: { correct: 4, accuracy: 0.75 }
     },
     {
       id: 'px2', cat: 'pixels', title: 'Paint by Coordinate', icon: '🖍️', xp: 35,
@@ -79,8 +79,8 @@
         'That is why the <b>order</b> and the <b>exact numbers</b> matter.'
       ],
       concept: 'A list of instructions is a <b>program</b>. Follow the list from top to bottom, one line at a time.',
-      exercise: { type: 'pixel', variant: 'paint-list', count: 6 },
-      mastery: { correct: 5, accuracy: 0.75 }
+      exercise: { type: 'pixel', variant: 'paint-list', count: 3 },
+      mastery: { correct: 3, accuracy: 0.75 }
     },
     {
       id: 'px3', cat: 'pixels', title: 'Copy the Picture', icon: '🖼️', xp: 40,
@@ -90,8 +90,8 @@
         'Tip: find the <b>first</b> coloured pixel, then follow the shape.'
       ],
       concept: 'Reading a picture is the same skill as writing one: you turn what you see into (column, row) pairs.',
-      exercise: { type: 'pixel', variant: 'copy-shape', count: 5 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'pixel', variant: 'copy-shape', count: 3 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'px4', cat: 'pixels', title: 'Sprite from Code', icon: '👾', xp: 50,
@@ -101,8 +101,8 @@
         'If you type every line correctly, the picture appears. That is how computers store images.'
       ],
       concept: 'A sprite is data: <b>[column, row, colour]</b> lines. Change one number and the picture changes.',
-      exercise: { type: 'pixel', variant: 'sprite-code', count: 5 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'pixel', variant: 'sprite-code', count: 3 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'px5', cat: 'pixels', title: 'Row Codes', icon: '📏', xp: 45,
@@ -112,8 +112,8 @@
         'Computers use this trick to make image files smaller.'
       ],
       concept: 'Compression = describing the same picture with fewer symbols. Same information, shorter code.',
-      exercise: { type: 'pixel', variant: 'row-code', count: 5 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'pixel', variant: 'row-code', count: 3 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'px6', cat: 'pixels', title: 'Pixel Artist', icon: '🌟', xp: 40,
@@ -123,7 +123,7 @@
         'Save your work — it goes into your gallery on this device.'
       ],
       concept: 'You have gone both ways: <b>picture → code</b> and <b>code → picture</b>. That is what programmers do all day.',
-      exercise: { type: 'pixel', variant: 'free-draw', count: 3 },
+      exercise: { type: 'pixel', variant: 'free-draw', count: 2 },
       mastery: { correct: 2, accuracy: 0.6 }
     },
 
@@ -136,8 +136,8 @@
         'Put the commands in the right <b>order</b> — that order is your program.'
       ],
       concept: 'A program is a <b>sequence</b>: step 1, step 2, step 3 … in exactly that order.',
-      exercise: { type: 'robot', variant: 'order', count: 5, options: { turns: false, gems: false, maxLen: 4 } },
-      mastery: { correct: 4, accuracy: 0.75 }
+      exercise: { type: 'robot', variant: 'order', count: 3, options: { turns: false, gems: false, maxLen: 4 } },
+      mastery: { correct: 3, accuracy: 0.75 }
     },
     {
       id: 'rb2', cat: 'robot', title: 'Turn Around', icon: '↰', xp: 35,
@@ -147,8 +147,8 @@
         'The little arrow on the robot shows which way is "forward".'
       ],
       concept: 'Turning changes <b>state</b> (which way the robot points). Later moves depend on it.',
-      exercise: { type: 'robot', variant: 'order', count: 5, options: { turns: true, gems: false, maxLen: 6 } },
-      mastery: { correct: 4, accuracy: 0.75 }
+      exercise: { type: 'robot', variant: 'order', count: 4, options: { turns: true, gems: false, maxLen: 6 } },
+      mastery: { correct: 3, accuracy: 0.75 }
     },
     {
       id: 'rb3', cat: 'robot', title: 'Route to the Flag', icon: '🚩', xp: 45,
@@ -215,8 +215,8 @@
         'Patterns are everywhere in maths, music and code.'
       ],
       concept: 'Analytical thinking starts with: <b>what changes, and by how much?</b>',
-      exercise: { type: 'logic', variant: 'sequence', count: 7 },
-      mastery: { correct: 5, accuracy: 0.7 }
+      exercise: { type: 'logic', variant: 'sequence', count: 5 },
+      mastery: { correct: 4, accuracy: 0.7 }
     },
     {
       id: 'lg2', cat: 'logic', title: 'Odd One Out', icon: '🚫', xp: 35,
@@ -226,8 +226,8 @@
         'A good rule explains <b>every</b> item except one.'
       ],
       concept: 'Classifying means finding the property that splits a group. Programmers do this with <b>if</b>.',
-      exercise: { type: 'logic', variant: 'odd', count: 6 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'logic', variant: 'odd', count: 4 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'lg3', cat: 'logic', title: 'Step by Step', icon: '🥪', xp: 40,
@@ -237,8 +237,8 @@
         'This skill is called <b>decomposition</b>.'
       ],
       concept: 'Decomposition = breaking one big problem into ordered, checkable steps.',
-      exercise: { type: 'logic', variant: 'order-steps', count: 6 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'logic', variant: 'order-steps', count: 4 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'lg4', cat: 'logic', title: 'Sort It Out', icon: '🗂️', xp: 40,
@@ -248,8 +248,8 @@
         'Clear rules are what make a program runnable by a machine.'
       ],
       concept: 'A rule a computer can check is <b>testable</b>: it always gives yes or no.',
-      exercise: { type: 'logic', variant: 'classify', count: 6 },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'logic', variant: 'classify', count: 4 },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'lg5', cat: 'logic', title: 'Find the Bug', icon: '🐞', xp: 45,
@@ -259,7 +259,7 @@
         'Finding bugs is a real job — it is called debugging.'
       ],
       concept: 'Debugging is <b>simulating the program in your head</b> and comparing it with what you wanted.',
-      exercise: { type: 'logic', variant: 'bug', count: 6 },
+      exercise: { type: 'logic', variant: 'bug', count: 5 },
       mastery: { correct: 4, accuracy: 0.7 }
     },
     {
@@ -283,8 +283,8 @@
         'You do not type yet — you predict the output. Reading code is half of coding.'
       ],
       concept: 'Code is an <b>instruction written in text</b>. Predicting output proves you understand it.',
-      exercise: { type: 'python', variant: 'predict', count: 6 },
-      mastery: { correct: 5, accuracy: 0.7 }
+      exercise: { type: 'python', variant: 'predict', count: 5 },
+      mastery: { correct: 4, accuracy: 0.7 }
     },
     {
       id: 'py2', cat: 'python', title: 'Print & Text', icon: '💬', xp: 45,
@@ -294,8 +294,8 @@
         'Spelling and brackets must be exact — the computer never guesses.'
       ],
       concept: 'A <b>string</b> is text. Python needs the quotes to know where the text starts and ends.',
-      exercise: { type: 'python', variant: 'write', count: 5, options: { topic: 'print' } },
-      mastery: { correct: 4, accuracy: 0.7 }
+      exercise: { type: 'python', variant: 'write', count: 4, options: { topic: 'print' } },
+      mastery: { correct: 3, accuracy: 0.7 }
     },
     {
       id: 'py3', cat: 'python', title: 'Variables & Maths', icon: '🧮', xp: 50,
@@ -371,7 +371,7 @@
         'Save it — your project stays in your profile on this device.'
       ],
       concept: 'Projects are how skills stick: <b>build → run → fix → extend</b>.',
-      exercise: { type: 'python', variant: 'project', count: 3 },
+      exercise: { type: 'python', variant: 'project', count: 2 },
       mastery: { correct: 2, accuracy: 0.6 }
     }
   ];
