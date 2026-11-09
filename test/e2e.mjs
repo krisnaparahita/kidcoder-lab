@@ -173,6 +173,53 @@ try {
     return {n:n, fail:fail};})()`);
   check('every exercise renders', r.fail.length === 0 && r.n > 0, r.n + ' rendered' + (r.fail.length ? '; ' + r.fail.slice(0, 5).join('; ') : ''));
 
+  for (const id of ['rb5', 'rb6', 'rb7']) {
+    const repeat = await evaluate(`(function(){
+      var level=App.Curriculum.byId['${id}'];
+      var ex=App.Exercises.buildSet(level,'seed0').items[0];
+      var out=App.Renderers.robot.render(ex,{level:level});
+      document.body.appendChild(out.node);
+      function click(selector){
+        var b=out.node.querySelector(selector);
+        if(!b) throw new Error('Missing repeat editor control: '+selector);
+        b.click();
+      }
+      for(var i=0;i<ex.solution.length;){
+        var end=i+1;
+        while(end<ex.solution.length && ex.solution[end].op===ex.solution[i].op) end++;
+        click('.program > .gtitle.row button');
+        click('.blockpalette [data-op="repeat"]');
+        var groups=out.node.querySelectorAll('.program > div > .group.repeat');
+        var count=3;
+        while(count<end-i){
+          groups=out.node.querySelectorAll('.program > div > .group.repeat');
+          groups[groups.length-1].previousElementSibling.querySelectorAll('.btn')[1].click();count++;
+        }
+        while(count>end-i){
+          groups=out.node.querySelectorAll('.program > div > .group.repeat');
+          groups[groups.length-1].previousElementSibling.querySelectorAll('.btn')[0].click();count--;
+        }
+        groups=out.node.querySelectorAll('.program > div > .group.repeat');
+        groups[groups.length-1].querySelector('.gtitle button').click();
+        click('.blockpalette [data-op="'+ex.solution[i].op+'"]');
+        i=end;
+      }
+      var settings=App.Progress.get().settings, animation=settings.animation;
+      settings.animation=false;
+      return out.attempt().then(function(program){
+        settings.animation=animation;
+        var expected=App.Robot.simulate(ex.world,{body:ex.solution});
+        var result={correct:ex.grade(program).correct,
+          trace:JSON.stringify(out.result().frames)===JSON.stringify(expected.frames),
+          count:program.body.length};
+        out.node.remove();
+        return result;
+      });
+    })()`);
+    check(id + ' repeat blocks built with palette reach the flag with the correct trace',
+      repeat.correct && repeat.trace && repeat.count > 1, repeat.count + ' repeat blocks');
+  }
+
   await sleep(300);
   check('no page errors, console errors or CSP violations', problems.length === 0, problems.slice(0, 10).join(' | ') || 'none');
 } catch (e) {

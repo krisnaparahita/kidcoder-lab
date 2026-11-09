@@ -186,6 +186,13 @@
       U.clear(programBox);
       activeLabel.textContent = 'Adding to: ' + active.label;
       programBox.appendChild(activeLabel);
+      programBox.appendChild(U.el('div.gtitle.row', {}, [
+        U.el('span', { text: 'Main program' }),
+        U.el('button.btn.small', {
+          text: active.list === model.body ? 'adding here ✓' : 'add here',
+          onclick: function () { active.list = model.body; active.label = 'Main program'; refresh(); }
+        })
+      ]));
       programBox.appendChild(renderList(model.body, 0));
       if (ex.tools.procedure) {
         var p = U.el('div', { style: { marginTop: '12px' } }, [
