@@ -73,7 +73,7 @@
     var out = [];
     (list || []).forEach(function (c) {
       if (c.op === 'repeat') {
-        for (var i = 0; i < (c.times || 1); i++) out = out.concat(flatten(c.body, procedures, depth + 1));
+        for (var i = 0; i < (c.times == null ? 1 : c.times); i++) out = out.concat(flatten(c.body, procedures, depth + 1));
       } else if (c.op === 'if') {
         out = out.concat(flatten(c.body, procedures, depth + 1));
       } else if (c.op === 'call') {
@@ -203,7 +203,10 @@
             note = 'Put it down.';
           }
         } else if (c.op === 'repeat') {
-          exec(c.body || [], depth + 1);
+          for (var n = 0; n < (c.times == null ? 1 : c.times) && !error; n++) {
+            if (++steps > MAX_STEPS) { error = { type: 'timeout', message: 'Too many steps! The robot stopped to rest.' }; return; }
+            exec(c.body || [], depth + 1);
+          }
           continue;
         } else if (c.op === 'if') {
           if (test(c.cond)) exec(c.body || [], depth + 1);

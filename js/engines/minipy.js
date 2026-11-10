@@ -771,7 +771,7 @@
         var start = 0, stop = 0, step = 1;
         if (a.length === 1) { stop = a[0]; }
         else if (a.length === 2) { start = a[0]; stop = a[1]; }
-        else { start = a[0]; stop = a[1]; step = a[2] || 1; }
+        else { start = a[0]; stop = a[1]; step = a[2]; }
         if (step === 0) throw PyError('ValueError', 'range() step cannot be 0.');
         var out = [];
         for (var i = start; step > 0 ? i < stop : i > stop; i += step) {
@@ -912,7 +912,7 @@
           if (++guard > 100000) throw PyError('TimeoutError', 'This loop never finishes. Check the condition.', node.line);
           var r = this.execBody(node.body, env);
           if (r === SIGNAL.BREAK) break;
-          if (r === SIGNAL.RETURN) return r;
+          if (r && r.value !== undefined) return r;
         }
         return null;
       }
@@ -926,7 +926,7 @@
           env.set(node.target, it[k]);
           var fr = this.execBody(node.body, env);
           if (fr === SIGNAL.BREAK) break;
-          if (fr === SIGNAL.RETURN) return fr;
+          if (fr && fr.value !== undefined) return fr;
         }
         return null;
       }

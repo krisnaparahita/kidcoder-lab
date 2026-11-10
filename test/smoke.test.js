@@ -74,6 +74,79 @@ test('robot reference solutions reach the flag', () => {
   assert.ok(checked > 0);
 });
 
+test('robot repeats execute only their body, in order, the requested number of times', () => {
+  const R = boot().Robot;
+  for (const times of [0, 1, 3, 8]) {
+    const world = R.makeWorld({ w: 12, h: 2, start: { x: 0, y: 0, dir: 1 }, goal: { x: times + 1, y: 0 } });
+    const program = { body: [
+      { op: 'repeat', times, body: [{ op: 'move' }, { op: 'right' }, { op: 'left' }] },
+      { op: 'move' }
+    ], procedures: {} };
+    const res = R.simulate(world, program);
+    assert.ok(res.success, times + ' repetitions reach the flag');
+    assert.strictEqual(res.end.x, times + 1);
+    assert.strictEqual(res.frames.slice(1).map((f) => f.applied.op).join(','),
+      Array(times).fill('move,right,left').concat('move').join(','));
+    assert.strictEqual(R.primitiveCount(program), times * 3 + 1);
+  }
+});
+
+test('every repeat-enabled robot course grades loop solutions like expanded solutions', () => {
+  const App = boot();
+  const levels = App.Curriculum.LEVELS.filter((l) => l.cat === 'robot' && l.exercise.options.repeat);
+  assert.strictEqual(levels.map((l) => l.id).join(','), 'rb5,rb6,rb7');
+  let compressed = 0;
+  for (const level of levels) {
+    for (let s = 0; s < SEEDS; s++) {
+      for (const ex of App.Exercises.buildSet(level, 'seed' + s).items) {
+        const body = [];
+        for (let i = 0; i < ex.solution.length;) {
+          let end = i + 1;
+          while (end < ex.solution.length && ex.solution[end].op === ex.solution[i].op) end++;
+          body.push({ op: 'repeat', times: end - i, body: [ex.solution[i]] });
+          if (end - i > 1) compressed++;
+          i = end;
+        }
+        const expected = App.Robot.simulate(ex.world, { body: ex.solution });
+        const actual = ex.grade({ body, procedures: {} });
+        assert.ok(actual.correct, level.id + ': ' + actual.message);
+        assert.strictEqual(JSON.stringify(actual.detail.frames), JSON.stringify(expected.frames));
+      }
+    }
+  }
+  assert.ok(compressed > 0, 'exercised repeat counts greater than one');
+});
+
+test('robot nested repeats and routine calls re-evaluate conditions each iteration', () => {
+  const R = boot().Robot;
+  const world = R.makeWorld({ w: 5, h: 1, start: { x: 0, y: 0, dir: 1 }, goal: { x: 4, y: 0 },
+    gems: [{ x: 1, y: 0 }, { x: 3, y: 0 }] });
+  const res = R.simulate(world, { body: [{ op: 'repeat', times: 2, body: [{ op: 'call', name: 'A' }] }],
+    procedures: { A: [{ op: 'repeat', times: 2, body: [
+      { op: 'move' }, { op: 'if', cond: 'gem', body: [{ op: 'pick' }] }
+    ] }] } });
+  assert.ok(res.success);
+  assert.strictEqual(res.gemsCollected, 2);
+  assert.strictEqual(res.frames.filter((f) => f.applied && f.applied.op === 'move').length, 4);
+  assert.strictEqual(res.frames.filter((f) => f.applied && f.applied.op === 'pick').length, 2);
+});
+
+test('robot repeats stop on errors and enforce the step budget even with empty bodies', () => {
+  const R = boot().Robot;
+  const world = R.makeWorld({ w: 2, h: 1, start: { x: 0, y: 0, dir: 1 }, goal: { x: 1, y: 0 } });
+  const crash = R.simulate(world, { body: [
+    { op: 'repeat', times: 8, body: [{ op: 'move' }] }, { op: 'right' }
+  ] });
+  assert.strictEqual(crash.error.type, 'crash');
+  assert.strictEqual(crash.frames.length, 3);
+  for (const body of [[], [{ op: 'left' }]]) {
+    const res = R.simulate(world, { body: [{ op: 'repeat', times: 10000, body }] });
+    assert.strictEqual(res.error.type, 'timeout');
+    assert.ok(res.steps <= 3001);
+    assert.ok(res.frames.length <= 600);
+  }
+});
+
 test('short pixel tasks have matching instructions, targets and graders', () => {
   const App = boot();
   for (const [id, limit] of [['px2', 8], ['px3', 12], ['px4', 16]]) {
@@ -132,6 +205,48 @@ test('MiniPy reports real Python error names', () => {
   assert.strictEqual(MP.run('print(x)').error.name, 'NameError');
   assert.strictEqual(MP.run('print(1 / 0)').error.name, 'ZeroDivisionError');
   assert.strictEqual(MP.run('while True:\n    pass').error.name, 'TimeoutError');
+});
+
+test('MiniPy for and while preserve body order, counts, break and continue', () => {
+  const MP = boot().MiniPy;
+  for (const code of [
+    'for i in range(5):',
+    'i = -1\nwhile i < 4:\n    i += 1'
+  ]) {
+    const res = MP.run(code + '\n    if i == 1:\n        continue\n    if i == 4:\n        break\n    print(i)\n    print("body")\nprint("after")');
+    assert.ok(res.ok, JSON.stringify(res.error));
+    assert.strictEqual(res.output.trim(), '0\nbody\n2\nbody\n3\nbody\nafter');
+  }
+  for (const iterable of ['range(0)', 'range(3, 3)', '[]', '""']) {
+    const res = MP.run('for i in ' + iterable + ':\n    print("body")\nprint("after")');
+    assert.ok(res.ok);
+    assert.strictEqual(res.output.trim(), 'after');
+  }
+  const descending = MP.run('for i in range(5, 0, -2):\n    print(i)\n    print("body")');
+  assert.ok(descending.ok);
+  assert.strictEqual(descending.output.trim(), '5\nbody\n3\nbody\n1\nbody');
+});
+
+test('MiniPy propagates function returns out of for and while loops', () => {
+  const MP = boot().MiniPy;
+  for (const loop of ['for i in range(3):', 'while True:']) {
+    for (const value of ['7', '0', 'False', 'None']) {
+      const code = 'def first():\n    ' + loop + '\n        if True:\n            return ' + value + '\n    print("fell through")\nprint(first())';
+      const res = MP.run(code);
+      assert.ok(res.ok, JSON.stringify(res.error));
+      assert.strictEqual(res.output.trim(), value);
+    }
+  }
+  const nested = MP.run('def first():\n    for i in range(3):\n        while True:\n            return 9\n    return 0\nprint(first())');
+  assert.ok(nested.ok);
+  assert.strictEqual(nested.output.trim(), '9');
+});
+
+test('MiniPy rejects a zero range step instead of executing the loop', () => {
+  const res = boot().MiniPy.run('for i in range(0, 3, 0):\n    print(i)');
+  assert.ok(!res.ok);
+  assert.strictEqual(res.error.name, 'ValueError');
+  assert.strictEqual(res.output, '');
 });
 
 test('stickers unlock in increasing order and reference real worlds', () => {
