@@ -11,7 +11,6 @@
 
   function mc(rng, correctValue, wrongValues, labelFn) {
     var opts = [correctValue].concat(rng.sample(wrongValues, Math.min(3, wrongValues.length)));
-    while (opts.length < 4) opts.push(wrongValues[opts.length % wrongValues.length]);
     return rng.shuffle(opts).map(function (v, i) {
       return { id: 'o' + i, label: labelFn(v), value: v };
     });
@@ -61,17 +60,19 @@
       answers = [new Array(n + 1).join('●')];
     }
 
-    var wrong = [];
-    var guard = 0;
-    while (wrong.length < 6 && guard++ < 60) {
-      var cand;
-      if (kind === 'shape' || kind === 'grow') {
-        cand = kind === 'grow' ? new Array(rng.int(1, 9) + 1).join('●') : rng.pick(['⭐', '🌙', '🔴', '🔵', '🟡', '🐶', '🐱', '🌳', '🌺', '🍄', '▲', '■', '●']);
-      } else {
-        cand = String(Math.max(1, parseInt(answers[0], 10) + rng.int(-9, 9)));
-      }
-      if (cand !== answers[0] && wrong.indexOf(cand) < 0 && items.indexOf(cand) < 0) wrong.push(cand);
+    // Enumerate the pool so repeated random draws cannot leave too few choices.
+    var candidates = [];
+    if (kind === 'shape') {
+      candidates = ['⭐', '🌙', '🔴', '🔵', '🟡', '🐶', '🐱', '🌳', '🌺', '🍄', '▲', '■', '●'];
+    } else if (kind === 'grow') {
+      for (var dots = 1; dots <= 9; dots++) candidates.push(new Array(dots + 1).join('●'));
+    } else {
+      for (var offset = -9; offset <= 9; offset++) candidates.push(String(Math.max(1, answers[0] + offset)));
     }
+    var wrong = candidates.filter(function (cand, idx) {
+      // Match the grader's string comparison, including numeric answers.
+      return cand !== String(answers[0]) && candidates.indexOf(cand) === idx && items.indexOf(cand) < 0;
+    });
 
     var ex = {
       id: makeId(level, rng, i),

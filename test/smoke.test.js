@@ -59,6 +59,92 @@ test('every level generates exercises for many seeds', () => {
   assert.ok(total > 1000, 'generated ' + total);
 });
 
+function assertLogicChoices(ex, expected) {
+  var values = ex.choices.map(function (choice) { return String(choice.value); });
+  var labels = ex.choices.map(function (choice) { return choice.label; });
+  assert.strictEqual(values.length, 4, ex.id + ' has four choices');
+  values.forEach(function (value, i) {
+    assert.strictEqual(values.indexOf(value), i, ex.id + ' duplicate value ' + value);
+    assert.strictEqual(labels.indexOf(labels[i]), i, ex.id + ' duplicate label ' + labels[i]);
+    assert.strictEqual(labels[i], value, ex.id + ' label matches submitted value');
+    if (expected !== undefined) {
+      assert.strictEqual(ex.grade(ex.choices[i].value).correct, value === String(expected), ex.id + ' follows the pattern');
+    }
+  });
+  assert.strictEqual(ex.choices.filter(function (choice) {
+    return ex.grade(choice.value).correct;
+  }).length, 1, ex.id + ' has exactly one correct choice');
+}
+
+test('logic choices stay unique with one correct answer across every level and many seeds', function () {
+  var App = boot();
+  var checked = 0;
+  App.Curriculum.LEVELS.filter(function (level) { return level.exercise.type === 'logic'; }).forEach(function (level) {
+    for (var s = 0; s < 1000; s++) {
+      App.Exercises.buildSet(level, 'seed' + s).items.forEach(function (ex) {
+        if (!ex.choices) return;
+        assertLogicChoices(ex);
+        checked++;
+      });
+    }
+  });
+  assert.strictEqual(checked, 5000);
+});
+
+test('every sequence kind and parameter combination has unique choices and the right answer', function () {
+  var App = boot();
+  var level = App.Curriculum.byId.lg1;
+  var generate = App.Exercises.get('logic', 'sequence');
+  var cases = [];
+  var shapes = [['⭐', '🌙'], ['🔴', '🔵', '🟡'], ['🐶', '🐱'], ['🌳', '🌺', '🍄'], ['▲', '■', '●']];
+  var a, d;
+  for (a = 1; a <= 12; a++) {
+    for (d = 2; d <= 5; d++) cases.push({ kind: 'count', params: [a, d], expected: a + 5 * d });
+  }
+  for (a = 2; a <= 20; a++) {
+    for (d = 3; d <= 8; d++) cases.push({ kind: 'skip', params: [a, d], expected: a + 5 * d });
+  }
+  for (a = 2; a <= 5; a++) cases.push({ kind: 'double', params: [a], expected: a * 32 });
+  for (a = 1; a <= 3; a++) cases.push({ kind: 'grow', params: [a], expected: new Array(a + 5).join('●') });
+  shapes.forEach(function (shape) { cases.push({ kind: 'shape', params: [], shape: shape, expected: shape[5 % shape.length] }); });
+  cases.forEach(function (entry, index) {
+    for (var s = 0; s < 12; s++) {
+      var rng = App.util.RNG('sequence-' + index + '-' + s);
+      var params = entry.params.slice();
+      // Force each branch and its full parameter domain. Subsequent draws
+      // repeat the minimum to exercise the former distractor-exhaustion path.
+      rng.pick = function (values) { return values[0] === 'count' ? entry.kind : (entry.shape || values[0]); };
+      rng.int = function (min) { return params.length ? params.shift() : min; };
+      var ex = generate(level, rng, index);
+      assertLogicChoices(ex, entry.expected);
+    }
+  });
+});
+
+test('numeric classification gives every number exactly one correct bucket', function () {
+  var App = boot();
+  var rng = App.util.RNG('even-numbers');
+  rng.pick = function (rules) { return rules.filter(function (rule) { return rule.prop === 'even'; })[0]; };
+  var ex = App.Exercises.get('logic', 'classify')(App.Curriculum.byId.lg4, rng, 0);
+  var map = {};
+  var values = ex.items.map(function (item) { return item.emoji; });
+  ex.items.forEach(function (item, i) {
+    assert.strictEqual(values.indexOf(item.emoji), i, 'unique number');
+    map[item.id] = Number(item.emoji) % 2 === 0 ? 'a' : 'b';
+  });
+  assert.ok(ex.grade(map).correct, 'parity determines the correct classification');
+  ex.items.forEach(function (item) {
+    var correct = map[item.id];
+    var accepted = ex.buckets.filter(function (bucket) {
+      map[item.id] = bucket.id;
+      return ex.grade(map).correct;
+    });
+    map[item.id] = correct;
+    assert.strictEqual(accepted.length, 1, item.emoji + ' has one correct bucket');
+    assert.strictEqual(accepted[0].id, correct);
+  });
+});
+
 test('robot reference solutions reach the flag', () => {
   const App = boot();
   let checked = 0;
